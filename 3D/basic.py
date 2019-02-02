@@ -1,8 +1,23 @@
 import pygame
+import os
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+axis = (
+ (20,0,0),
+ (-20,0,0),
+ (0,20,0),
+ (0,-20,0),
+ (0,0,20),
+ (0,0,-20),
+)
+axislines = (
+	(0,1),
+	(2,3),
+	(4,5),
+)
 verticies1 = ( #Vertices for a cube
 	(1, -1, -1),
 	(1, 1, -1),
@@ -12,6 +27,67 @@ verticies1 = ( #Vertices for a cube
 	(1, 1, 1),
 	(-1, -1, 1),
 	(-1, 1, 1),
+)
+
+verticiesCube2 = ( #Y down
+	(1, -4, -1),
+	(1, -2, -1),
+	(-1, -2, -1),
+	(-1, -4, -1),
+	(1, -4, 1),
+	(1, -2, 1),
+	(-1, -4, 1),
+	(-1, -2, 1),
+)
+verticiesCube3 = ( #Y up
+	(1, 2, -1),
+	(1, 4, -1),
+	(-1, 4, -1),
+	(-1, 2, -1),
+	(1, 2, 1),
+	(1, 4, 1),
+	(-1, 2, 1),
+	(-1, 4, 1),
+)
+verticiesCube4 = ( #X left
+	(-2, -1, -1),
+	(-2, 1, -1),
+	(-4, 1, -1),
+	(-4, -1, -1),
+	(-2, -1, 1),
+	(-2, 1, 1),
+	(-4, -1, 1),
+	(-4, 1, 1),
+)
+verticiesCube5 = ( #X Right
+	(4, -1, -1),
+	(4, 1, -1),
+	(2, 1, -1),
+	(2, -1, -1),
+	(4, -1, 1),
+	(4, 1, 1),
+	(2, -1, 1),
+	(2, 1, 1),
+)
+verticiesCube6 = ( #Vertices for a cube
+	(1, -1, -4),
+	(1, 1, -4),
+	(-1, 1, -4),
+	(-1, -1, -4),
+	(1, -1, -2),
+	(1, 1, -2),
+	(-1, -1, -2),
+	(-1, 1, -2),
+)
+verticiesCube7 = ( #Vertices for a cube
+	(1, -1, 2),
+	(1, 1, 2),
+	(-1, 1, 2),
+	(-1, -1, 2),
+	(1, -1, 4),
+	(1, 1, 4),
+	(-1, -1, 4),
+	(-1, 1, 4),
 )
 verticies3 = (
 	(1, 1, 1), #0
@@ -24,13 +100,21 @@ verticies3 = (
 	(1, -1, -1), #7
 	(0, 2, 0) # 8
 )
-verticies2 = ( #Vertices for a square pyramid
-	(0,1,0),
+verticiesPyramid = ( #Vertices for a square pyramid
+	(0,6,0),
 	(1,0,1),
 	(-1,0,1),
 	(-1,0,-1),
 	(1,0,-1),
 )
+verticiesPyramid2 = (
+	(0,-6,0),
+	(1, 0, 1),
+	(-1, 0, 1),
+	(-1, 0, -1),
+	(1,0,-1),
+)
+
 edges3 = (
 	(0,1),
 	(0,3),
@@ -84,7 +168,7 @@ surfaces = ( #Surface for a cube
 	(1,5,7,2),
 	(4,0,3,6),
 )
-surfaces2 = (
+surfaces2 = ( #pyramid
 	(1,2,3,4),
 	(0,1,2),
 	(1,2,0),
@@ -107,6 +191,20 @@ colors = ( #colors
 	(1,1,1),
 	(0,1,1),
 )
+colors3 = (
+	(1,0,0),
+	(0,1,0),
+	(0,0,1)
+)
+def Axis():
+	glBegin(GL_LINES)
+	x=0
+	for edge in axislines:
+		for vertex in edge:
+			glColor3fv(colors3[x])
+			glVertex3fv(axis[vertex])
+		x+=1
+	glEnd()
 def House():
 	glBegin(GL_LINES)
 	for edge in edges3:
@@ -121,15 +219,28 @@ def Pyramid():
 		for vertex in surface:
 			x+=1
 			glColor3fv(colors[x])
-			glVertex3fv(verticies2[vertex])
+			glVertex3fv(verticiesPyramid[vertex])
 	glEnd()
 	glBegin(GL_LINES)
 	for edge in edges2:
 		for vertex in edge:
-			glVertex3fv(verticies2[vertex])
+			glVertex3fv(verticiesPyramid[vertex])
 	glEnd()
-def Cube():
 	glBegin(GL_QUADS)
+	for surface in surfaces2:
+		x = 0
+		for vertex in surface:
+			x+=1
+			glColor3fv(colors[x])
+			glVertex3fv(verticiesPyramid2[vertex])
+	glEnd()
+	glBegin(GL_LINES)
+	for edge in edges2:
+		for vertex in edge:
+			glVertex3fv(verticiesPyramid2[vertex])
+	glEnd()
+def Cubes(lines):
+	glBegin(GL_QUADS) #CUBE MIDDLE
 	for surface in surfaces:
 		x= 0;
 		
@@ -138,20 +249,111 @@ def Cube():
 			glColor3fv(colors[x])
 			glVertex3fv(verticies1[vertex])
 	glEnd()
-	glBegin(GL_LINES)
-	for edge in edges1:#Connects the vertices with the edges
-		for vertex in edge:
-			glVertex3fv(verticies1[vertex])
+	if(lines):
+		glBegin(GL_LINES)
+		for edge in edges1:#Connects the vertices with the edges
+			for vertex in edge:
+				glVertex3fv(verticies1[vertex])
+		glEnd()
+
+	glBegin(GL_QUADS) #CUBE DOWN
+	for surface in surfaces:
+		x = 0
+		for vertex in surface:
+			x+=1
+			glColor3fv(colors[x])
+			glVertex3fv(verticiesCube2[vertex])
 	glEnd()
+	if(lines):
+		glBegin(GL_LINES)
+		for edge in edges1:
+			for vertex in edge:
+				glVertex3fv(verticiesCube2[vertex])
+		glEnd()
+
+	glBegin(GL_QUADS) #CUBE Up
+	for surface in surfaces:
+		x = 0
+		for vertex in surface:
+			x+=1
+			glColor3fv(colors[x])
+			glVertex3fv(verticiesCube3[vertex])
+	glEnd()
+	if(lines):
+		glBegin(GL_LINES)
+		for edge in edges1:
+			for vertex in edge:
+				glVertex3fv(verticiesCube3[vertex])
+		glEnd()
+
+	glBegin(GL_QUADS) #CUBE Left
+	for surface in surfaces:
+		x = 0
+		for vertex in surface:
+			x+=1
+			glColor3fv(colors[x])
+			glVertex3fv(verticiesCube4[vertex])
+	glEnd()
+	if(lines):
+		glBegin(GL_LINES)
+		for edge in edges1:
+			for vertex in edge:
+				glVertex3fv(verticiesCube4[vertex])
+		glEnd()
+
+	glBegin(GL_QUADS) #CUBE Right
+	for surface in surfaces:
+		x = 0
+		for vertex in surface:
+			x+=1
+			glColor3fv(colors[x])
+			glVertex3fv(verticiesCube5[vertex])
+	glEnd()
+	if(lines):
+		glBegin(GL_LINES)
+		for edge in edges1:
+			for vertex in edge:
+				glVertex3fv(verticiesCube5[vertex])
+		glEnd()
+	glBegin(GL_QUADS) #CUBE backwards
+	for surface in surfaces:
+		x = 0
+		for vertex in surface:
+			x+=1
+			glColor3fv(colors[x])
+			glVertex3fv(verticiesCube6[vertex])
+	glEnd()
+	if(lines):
+		glBegin(GL_LINES)
+		for edge in edges1:
+			for vertex in edge:
+				glVertex3fv(verticiesCube6[vertex])
+		glEnd()
+	glBegin(GL_QUADS) #CUBE forwards
+	for surface in surfaces:
+		x = 0
+		for vertex in surface:
+			x+=1
+			glColor3fv(colors[x])
+			glVertex3fv(verticiesCube7[vertex])
+	glEnd()
+	if(lines):
+		glBegin(GL_LINES)
+		for edge in edges1:
+			for vertex in edge:
+				glVertex3fv(verticiesCube7[vertex])
+		glEnd()
 def main():
 	pygame.init()
-	display = (800,600)
+	display = (2560,1080)
 	pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
-	gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
+	gluPerspective(45, (display[0]/display[1]), 0.1, 80.0)
 
 	glTranslatef(0.0,0.0,-15)#Changes our field of view
 	glRotatef(0, 0, 0, 0)
 	vel = 1
+	lines = False
+	showAxis = True
 	autopilot = False
 	while True:
 		for event in pygame.event.get():
@@ -193,7 +395,7 @@ def main():
 		if(inkey[pygame.K_DOWN]):
 			glTranslatef(0,-.5,0)
 		if(autopilot):			#changes the rotatition
-			glRotatef(vel,1,-1,1)
+			glRotatef(vel,1,1,1)
 		if(inkey[pygame.K_w]):
 			glRotatef(vel,1,0,0)
 			autopilot = False
@@ -204,11 +406,19 @@ def main():
 			glRotatef(vel,0,1,0)
 			autopilot = False
 		if(inkey[pygame.K_a]):
-			glRotatef(vel,0,-1,0)
+			glRotatef(vel,1,1,1)
 			autopilot = False
+		if(inkey[pygame.K_SPACE]):
+			if(showAxis):
+				showAxis = False
+			else:
+				showAxis = True
 		#glRotatef(1,1,1,1)
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-		House()
+		glClearColor(1,1,1,1)
+		if (showAxis):
+			Axis()
+		Cubes(True)
 		pygame.display.flip()
 		pygame.time.wait(10)
 
